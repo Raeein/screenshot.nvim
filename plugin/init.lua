@@ -67,12 +67,16 @@ local function is_text_selected()
     return true
 end
 
-local function capture_selection()
+local function capture_selection_to_file()
     local content = get_visual_selection()
     if content == nil then
         return
     end
     print("capture_selection")
+    if 1 == 1 then
+        return
+    end
+
     local extention = vim.fn.expand("%:e")
     local curr_file = vim.fn.expand("%:t:r")
     local date = os.date("%Y-%m-%d_%H-%M-%S")
@@ -87,6 +91,51 @@ local function capture_selection()
     print("Saved to: " .. file_path)
 end
 
+local function capture_selection_to_clipboard()
+    local path = vim.fn.expand("%:p")
+    print("Path is: " .. path)
+
+    local start_line = vim.fn.getpos("'<")[2]
+    local end_line = vim.fn.getpos("'>")[2]
+
+    print("capture_selection_to_clipboard")
+    print("start_line: " .. start_line)
+    print("end_line: " .. end_line)
+
+    local command = "carbon-now " .. path .. " -h -c -s " .. start_line .. " -e " .. end_line
+    local callbacks = {
+        -- standard out callbac
+        on_stdout = function(_, data)
+            if (#data == 0) or (#data == 1 and data[1] == "") then
+                print("Failed to capture")
+            end
+        end,
+        -- standard error callback
+        on_stderr = function(_, data)
+            P(data)
+        end,
+        detach = true,
+        stdout_buffered = true,
+        stderr_buffered = true,
+    }
+
+    local job_id = vim.fn.jobstart(command, callbacks)
+
+    if job_id == 0 then
+        print("Received invalid arguments")
+    elseif job_id == -1 then
+        print("cmd is not an executable")
+    end
+
+    local job_ids = { job_id }
+    local timeout = 1000 * 10
+    vim.fn.chansend(job_id, "\n")
+    vim.fn.jobwait(job_ids, timeout)
+    vim.fn.jobstop(job_id)
+
+end
+
+
 local function capture_all()
 	local extention = vim.fn.expand("%:e")
 	local curr_file = vim.fn.expand("%:t:r")
@@ -95,7 +144,7 @@ local function capture_all()
     local path = vim.fn.expand("%:p")
 
     local current_dir = vim.fn.getcwd()
-    local carbon_command = "caron-now " .. path .. " -h -c -l " .. current_dir .. " -t " .. file_name
+    local carbon_command = "carbon-now " .. path .. " -h -c -l " .. current_dir .. " -t " .. file_name
     -- local command = {"carbon-now", path, "-h", "-c", "-l", current_dir, "-t", file_name}
     -- local command = "ls -la"
     local command = carbon_command
@@ -138,8 +187,9 @@ end
 
 -- only screenshot the selected portion
 function SSText()
-    if is_visual_mode() and is_text_selected() then
-        capture_selection()
+
+    if is_text_selected() then
+        capture_selection_to_clipboard()
     else
         print("No text selected")
     end
