@@ -1,3 +1,5 @@
+## NOT READY FOR USE
+
 # screenshot.nvim
 
 Generate pretty screenshots of your code without leaving the safe space of terminal
