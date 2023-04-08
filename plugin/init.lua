@@ -23,10 +23,17 @@ local function check_versions()
         print("Neovim version is not 0.8.3")
     end
 end
+
 check_versions()
 
 local function get_visual_selection()
 	print("get_visual_selection")
+    -- check if mark has been set
+    if vim.fn.getpos("'<")[1] == 0 then
+        print("No text selected")
+        return nil
+    end
+
     local s_start = vim.fn.getpos("'<")
     local s_end = vim.fn.getpos("'>")
     local n_lines = math.abs(s_end[2] - s_start[2]) + 1
@@ -60,22 +67,24 @@ local function is_text_selected()
     return true
 end
 
-local function capture_selection(content)
-    print("capture_selection")
-    if 1 == 2 then
-        local extention = vim.fn.expand("%:e")
-        local curr_file = vim.fn.expand("%:t:r")
-        local date = os.date("%Y-%m-%d_%H-%M-%S")
-        local file_name = curr_file .. "_" .. date .. "." .. extention
-
-        local current_dir = vim.fn.getcwd()
-        local file_path = current_dir .. "/" .. file_name
-        local file = io.open(file_path, "w")
-
-        file:write(content)
-        file:close()
-        print("Saved to: " .. file_path)
+local function capture_selection()
+    local content = get_visual_selection()
+    if content == nil then
+        return
     end
+    print("capture_selection")
+    local extention = vim.fn.expand("%:e")
+    local curr_file = vim.fn.expand("%:t:r")
+    local date = os.date("%Y-%m-%d_%H-%M-%S")
+    local file_name = curr_file .. "_" .. date .. "." .. extention
+
+    local current_dir = vim.fn.getcwd()
+    local file_path = current_dir .. "/" .. file_name
+    local file = io.open(file_path, "w")
+
+    file:write(content)
+    file:close()
+    print("Saved to: " .. file_path)
 end
 
 local function capture_all()
@@ -85,33 +94,27 @@ local function capture_all()
 	local file_name = curr_file .. "_" .. date .. "." .. extention
     local path = vim.fn.expand("%:p")
 
-    -- vim.api.nvim_command("echo 'hello world'")
-
     local current_dir = vim.fn.getcwd()
-    -- local command = "carbon-now " .. path .. " -h -c -l " .. current_dir .. " -t " .. file_name
-    -- print("Command is " .. command )
-    -- vim.api.nvim_command(command)
-    -- local res = vim.api.nvim_exec(command, true)
-    -- local res = vim.fn.system(command)
-    local carbon_command = "carbon-now " .. path .. " -h -c -l " .. current_dir .. " -t " .. file_name
+    local carbon_command = "caron-now " .. path .. " -h -c -l " .. current_dir .. " -t " .. file_name
     -- local command = {"carbon-now", path, "-h", "-c", "-l", current_dir, "-t", file_name}
-    local command = "ls -la"
+    -- local command = "ls -la"
+    local command = carbon_command
     local callbacks = {
+        -- standard out callbac
         on_stdout = function(_, data)
-            print("on_stdout")
-            P(data)
+            if (#data == 0) or (#data == 1 and data[1] == "") then
+                print("Failed to capture")
+            end
         end,
+        -- standard error callback
         on_stderr = function(_, data)
-            print("on_stderr")
             P(data)
         end,
-        on_exit = function(_, data)
-            print("on_exit")
-            P(data)
-        end,
-        detach = false,
-        pty = true,
+        detach = true,
+        stdout_buffered = true,
+        stderr_buffered = true,
     }
+
     local job_id = vim.fn.jobstart(command, callbacks)
 
     if job_id == 0 then
@@ -127,25 +130,24 @@ local function capture_all()
     vim.fn.jobstop(job_id)
 end
 
-local function my_callback(job_id, data, event)
-  -- Print the output to the Neovim message area
-  vim.api.nvim_out_write(data)
+-- Screenshot all the page
+function SS()
+    print("Capturing all the page")
+    capture_all()
 end
 
-function Screenshot()
-    if is_visual_mode() == false then
-        print("normal mode")
-        capture_all()
-    elseif is_visual_mode() and is_text_selected() then
-        print("visual mode")
+-- only screenshot the selected portion
+function SSText()
+    if is_visual_mode() and is_text_selected() then
         capture_selection()
+    else
+        print("No text selected")
     end
 end
 
 
-
 vim.g.mapleader = " "
-vim.keymap.set({"v"}, "<leader>ss", ":lua Screenshot()<CR>", {noremap = true, silent = true})
+vim.keymap.set({"v"}, "<leader>ss", ":lua SS()<CR>", {noremap = true, silent = true})
 
-vim.cmd("command! Screenshot lua Screenshot()")
-vim.cmd("command! -range=% -nargs=0 Screenshot :'<,'>lua Screenshot()")
+vim.cmd("command! SS lua SS()")
+vim.cmd("command! -range=% -nargs=0 SSText :'<,'>lua SSText()")
