@@ -1,4 +1,3 @@
-
 if vim.g.screenshot_nvim_loaded then
 	print("screenshot_nvim already loaded")
 -- 	return
@@ -7,6 +6,24 @@ else
 end
 
 vim.g.screenshot_nvim_loaded = 1
+
+local function check_versions()
+
+    local version = vim.fn.system("carbon-now --version")
+    version = string.gsub(version, "^%s+", "")
+    version = string.gsub(version, "%s+$", "")
+
+    local minor, patch = vim.version().minor, vim.version().patch
+
+    if not tostring(version) == "1.4.0" then
+        print("Carbon version is not 1.4.0")
+    end
+
+    if not (minor == 8 and patch == 3) then
+        print("Neovim version is not 0.8.3")
+    end
+end
+check_versions()
 
 local function get_visual_selection()
 	print("get_visual_selection")
@@ -92,11 +109,21 @@ local function capture_all()
             print("on_exit")
             P(data)
         end,
+        detach = false,
+        pty = true,
     }
     local job_id = vim.fn.jobstart(command, callbacks)
+
+    if job_id == 0 then
+        print("Received invalid arguments")
+    elseif job_id == -1 then
+        print("cmd is not an executable")
+    end
+
     local job_ids = { job_id }
+    local timeout = 1000 * 10
     vim.fn.chansend(job_id, "\n")
-    vim.fn.jobwait(job_ids, 1000.0)
+    vim.fn.jobwait(job_ids, timeout)
     vim.fn.jobstop(job_id)
 end
 
