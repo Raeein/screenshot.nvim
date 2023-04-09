@@ -1,14 +1,21 @@
-print("Screenshot got called")
 local M = {}
 
--- local config = require("screenshot_nvim.config") 
-
-
--- local function setup(config)
--- end
 local command = require("screenshot_nvim.command")
+local config = require("screenshot_nvim.config")
 
-local function check_versions()
+function M.setup(options)
+    config.setup(options)
+end
+
+M.setup({
+    clipboard = false,
+    save_screenshot = true,
+    -- save_dir = "/home/username/Pictures/Screenshots",
+    save_dir = "/Users/raeeinbagheri/Desktop/"
+})
+
+
+function M.check_versions()
 
     local version = vim.fn.system("carbon-now --version")
     version = string.gsub(version, "^%s+", "")
@@ -28,32 +35,6 @@ end
 
 -- check_versions()
 
--- local function get_visual_selection()
---     -- check if mark has been set
---     if vim.fn.getpos("'<")[1] == 0 then
---         print("No text selected")
---         return nil
---     end
---
---     local s_start = vim.fn.getpos("'<")
---     local s_end = vim.fn.getpos("'>")
---     local n_lines = math.abs(s_end[2] - s_start[2]) + 1
---     local lines = vim.api.nvim_buf_get_lines(0, s_start[2] - 1, s_end[2], false)
---     lines[1] = string.sub(lines[1], s_start[3], -1)
---     if n_lines == 1 then
---         lines[n_lines] = string.sub(lines[n_lines], 1, s_end[3] - s_start[3] + 1)
---     else
---         lines[n_lines] = string.sub(lines[n_lines], 1, s_end[3])
---     end
---     local selection = table.concat(lines, '\n')
---     -- writeToFile(selection)
---     vim.api.nvim_command("echo 'hello world'")
---     return selection
--- end
-
--- local function is_visual_mode()
---     return vim.fn.mode() == "v" or vim.fn.mode() == "V" or vim.fn.mode() == ""
--- end
 
 local function is_text_selected()
 
@@ -92,60 +73,107 @@ end
 --     print("Saved to: " .. file_path)
 -- end
 
-local function capture_selection_to_clipboard()
+local function get_file_info()
+    local info = {}
+    local curr_file = vim.fn.expand("%:t:r")
+    local date = os.date("%Y-%m-%d_%H-%M-%S")
+    local file_name = curr_file .. "_" .. date
+    local path = vim.fn.expand("%:p")
+
+    local current_dir = vim.fn.getcwd()
+    -- return current_dir, file_name, path
+    info.current_dir = current_dir
+    info.file_name = file_name
+    info.path = path
+
+    return info
+end
+
+local function capture_selection()
+
+    local configs = config.get_default_options()
+
+    local file_info = get_file_info()
 
     local options = {
         type = "selection",
-        path = vim.fn.expand("%:p"),
         start_line = vim.fn.getpos("'<")[2],
         end_line = vim.fn.getpos("'>")[2],
-        clipboard = true,
-        save = false,
-        current_dir = "",
-        file_name = "",
+        -- file info
+        path = file_info.path,
+        current_dir = file_info.current_dir,
+        file_name = file_info.file_name,
+        -- options
+        save_dir = config.save_dir,
+        clipboard = configs.clipboard,
+        save = configs.save_screenshot,
     }
     command.run(options)
 end
 
 
 local function capture_all()
-	local extention = vim.fn.expand("%:e")
-	local curr_file = vim.fn.expand("%:t:r")
-	local date = os.date("%Y-%m-%d_%H-%M-%S")
-	local file_name = curr_file .. "_" .. date .. "." .. extention
-    local path = vim.fn.expand("%:p")
+    local configs = config.get_default_options()
 
-    local current_dir = vim.fn.getcwd()
+    local file_info = get_file_info()
+
     local options = {
         type = "all",
-        path = path,
         start_line = -1,
         end_line = -1,
-        clipboard = true,
-        save = false,
-        current_dir = current_dir,
-        file_name = file_name,
+        -- file info
+        path = file_info.path,
+        current_dir = file_info.current_dir,
+        file_name = file_info.file_name,
+        -- options
+        save_dir = configs.save_dir,
+        clipboard = configs.clipboard,
+        save = configs.save_screenshot,
     }
     command.run(options)
 end
 
+
 -- Screenshot all the page
-function SS()
+function M.SS()
     capture_all()
 end
 
 -- only screenshot the selected portion
-function SSText()
+function M.SSText()
 
     if is_text_selected() then
-        capture_selection_to_clipboard()
+        capture_selection()
     else
         print("No text selected")
     end
 end
 
-M.SS = SS
-M.SSText = SSText
-M.check_versions = check_versions
-
 return M
+
+-- local function get_visual_selection()
+--     -- check if mark has been set
+--     if vim.fn.getpos("'<")[1] == 0 then
+--         print("No text selected")
+--         return nil
+--     end
+--
+--     local s_start = vim.fn.getpos("'<")
+--     local s_end = vim.fn.getpos("'>")
+--     local n_lines = math.abs(s_end[2] - s_start[2]) + 1
+--     local lines = vim.api.nvim_buf_get_lines(0, s_start[2] - 1, s_end[2], false)
+--     lines[1] = string.sub(lines[1], s_start[3], -1)
+--     if n_lines == 1 then
+--         lines[n_lines] = string.sub(lines[n_lines], 1, s_end[3] - s_start[3] + 1)
+--     else
+--         lines[n_lines] = string.sub(lines[n_lines], 1, s_end[3])
+--     end
+--     local selection = table.concat(lines, '\n')
+--     -- writeToFile(selection)
+--     vim.api.nvim_command("echo 'hello world'")
+--     return selection
+-- end
+
+-- local function is_visual_mode()
+--     return vim.fn.mode() == "v" or vim.fn.mode() == "V" or vim.fn.mode() == ""
+-- end

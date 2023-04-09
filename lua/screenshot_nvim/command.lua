@@ -1,25 +1,66 @@
 local M = {}
-    -- local options = {
-    --     type = "all",
-    --     path = path,
-    --     start_line = -1,
-    --     end_line = -1,
-    --     clipboard = true,
-    --     save = false,
-    --     current_dir = current_dir,
-    --     file_name = file_name,
-    -- }
 
-local function run(options)
-    local command = "carbon-now -h " .. options.path
+local function validate_options(options)
+    -- User error
+    if options.save == false and options.clipboard == false then
+        error("Neither save nor copy to clipboard is enabled")
+        return false
+    end
+    if options.save and options.clipboard then
+        error("Both save and copy to clipboard can not be enabled")
+        return false
+    end
+    -- My error (never happens)
+    if options.type == "selection" then
+        if options.start_line == -1 or options.end_line == -1 then
+            print("Screenshot-nvim: Invalid start or end line")
+            return false
+        end
+    end
+    if options.save then
+        if options.save_dir == "" then
+            print("Screenshot-nvim: Invalid save directory")
+            return false
+        end
+    end
+    return true
+end
+
+function M.run(options)
+    if not validate_options(options) then
+        return
+    end
+
+    print(options.path)
+    local command = {
+        "carbon-now",
+        "-h",
+        options.path,
+    }
+
+    local success_message = ""
     if options.clipboard then
-        command = command .. " -c"
+        print("clipboard enabled")
+        table.insert(command, "-c")
+        success_message = "Copied to clipboard"
+    end
+
+    if options.save then
+        print("save enabled")
+        table.insert(command, "-l")
+        table.insert(command, options.save_dir)
+        table.insert(command, "-t")
+        table.insert(command, options.file_name)
+        success_message = "Saved to: " .. options.save_dir .. "/" .. options.file_name .. ".png"
     end
 
     if options.type == "selection" then
-        command = command .. " -s " .. options.start_line .. " -e " .. options.end_line
-    elseif options.type == "all" then
-        command = command .. " -l " .. options.current_dir .. " -t " .. options.file_name
+        table.insert(command, "-s")
+        table.insert(command, options.start_line)
+        table.insert(command, "-e")
+        table.insert(command, options.end_line)
+    -- elseif options.type == "all" then
+    --     table.insert(command, options.current_dir)
     end
 
     local job_id = 0
@@ -39,7 +80,7 @@ local function run(options)
         on_exit = function(_, exit_code, _)
             vim.fn.jobstop(job_id)
             if exit_code == 0 then
-                print("Job finished successfully")
+                print(success_message)
             else
                 -- print("Job failed with exit code: " .. exit_code)
                 print("Failed to capture - try again")
@@ -49,8 +90,10 @@ local function run(options)
         stdout_buffered = true,
         stderr_buffered = true,
     }
+    print("Command is", table.concat(command, " "))
 
-    job_id = vim.fn.jobstart(command, callbacks)
+    -- job_id = vim.fn.jobstart(command, callbacks)
+    job_id = vim.fn.jobstart(table.concat(command, " "), callbacks)
 
     if job_id <= 0 then
         print("Failed to capture - try again")
@@ -63,8 +106,5 @@ local function run(options)
 
     vim.fn.chansend(job_id, "\n")
 end
-
-
-M.run = run
 
 return M
