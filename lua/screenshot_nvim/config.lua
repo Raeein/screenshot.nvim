@@ -2,7 +2,7 @@ local M = {}
 
 local config = {
     clipboard = true,
-    save_screenshot = true,
+    save_screenshot = false,
     save_dir = "",
 }
 

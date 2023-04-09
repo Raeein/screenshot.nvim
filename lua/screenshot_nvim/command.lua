@@ -6,7 +6,7 @@ local function validate_options(options)
         error("Neither save nor copy to clipboard is enabled")
         return false
     end
-    if options.save and options.clipboard then
+    if options.save == true and options.clipboard == true then
         error("Both save and copy to clipboard can not be enabled")
         return false
     end
@@ -31,7 +31,6 @@ function M.run(options)
         return
     end
 
-    print(options.path)
     local command = {
         "carbon-now",
         "-h",
@@ -40,13 +39,11 @@ function M.run(options)
 
     local success_message = ""
     if options.clipboard then
-        print("clipboard enabled")
         table.insert(command, "-c")
         success_message = "Copied to clipboard"
     end
 
     if options.save then
-        print("save enabled")
         table.insert(command, "-l")
         table.insert(command, options.save_dir)
         table.insert(command, "-t")
@@ -59,8 +56,6 @@ function M.run(options)
         table.insert(command, options.start_line)
         table.insert(command, "-e")
         table.insert(command, options.end_line)
-    -- elseif options.type == "all" then
-    --     table.insert(command, options.current_dir)
     end
 
     local job_id = 0
@@ -90,7 +85,7 @@ function M.run(options)
         stdout_buffered = true,
         stderr_buffered = true,
     }
-    print("Command is", table.concat(command, " "))
+    print(table.concat(command, " "))
 
     -- job_id = vim.fn.jobstart(command, callbacks)
     job_id = vim.fn.jobstart(table.concat(command, " "), callbacks)

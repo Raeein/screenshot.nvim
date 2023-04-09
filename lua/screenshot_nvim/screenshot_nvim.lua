@@ -8,8 +8,8 @@ function M.setup(options)
 end
 
 M.setup({
-    clipboard = false,
-    save_screenshot = true,
+    clipboard = true,
+    save_screenshot = false,
     -- save_dir = "/home/username/Pictures/Screenshots",
     save_dir = "/Users/raeeinbagheri/Desktop/"
 })
@@ -104,7 +104,7 @@ local function capture_selection()
         current_dir = file_info.current_dir,
         file_name = file_info.file_name,
         -- options
-        save_dir = config.save_dir,
+        save_dir = configs.save_dir,
         clipboard = configs.clipboard,
         save = configs.save_screenshot,
     }
