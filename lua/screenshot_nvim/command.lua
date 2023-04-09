@@ -22,6 +22,7 @@ local function run(options)
         command = command .. " -l " .. options.current_dir .. " -t " .. options.file_name
     end
 
+    local job_id = 0
     local callbacks = {
         -- standard out callbac
         on_stdout = function(_, data)
@@ -31,26 +32,36 @@ local function run(options)
         end,
         -- standard error callback
         on_stderr = function(_, data)
-            P(data)
+            if (#data == 0) or (#data == 1 and data[1] == "") then
+                P(data)
+            end
+        end,
+        on_exit = function(_, exit_code, _)
+            vim.fn.jobstop(job_id)
+            if exit_code == 0 then
+                print("Job finished successfully")
+            else
+                -- print("Job failed with exit code: " .. exit_code)
+                print("Failed to capture - try again")
+            end
         end,
         detach = true,
         stdout_buffered = true,
         stderr_buffered = true,
     }
 
-    local job_id = vim.fn.jobstart(command, callbacks)
+    job_id = vim.fn.jobstart(command, callbacks)
 
-    if job_id == 0 then
-        print("Received invalid arguments")
-    elseif job_id == -1 then
-        print("cmd is not an executable")
+    if job_id <= 0 then
+        print("Failed to capture - try again")
     end
+    -- if job_id == 0 then
+    --     print("Received invalid arguments")
+    -- elseif job_id == -1 then
+    --     print("cmd is not an executable")
+    -- end
 
-    local job_ids = { job_id }
-    local timeout = 1000 * 10
     vim.fn.chansend(job_id, "\n")
-    vim.fn.jobwait(job_ids, timeout)
-    vim.fn.jobstop(job_id)
 end
 
 

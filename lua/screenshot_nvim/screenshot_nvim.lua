@@ -1,3 +1,4 @@
+print("Screenshot got called")
 local M = {}
 
 -- local config = require("screenshot_nvim.config") 
@@ -130,7 +131,6 @@ end
 
 -- Screenshot all the page
 function SS()
-    print("Capturing all the page")
     capture_all()
 end
 
