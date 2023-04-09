@@ -1,18 +1,17 @@
 ================================================================================
-								*screenshot.nvim
+                                                             *screenshot.nvim*
 
 This plugin is a wrapper around the carbon-now cli program which allows you to
 take pretty screenshots of your leaving without leaving neovim. See examples
 below:
 
-                                                         *screenshot_nvim.SS()
+                                                        *screenshot_nvim.SS()*
 screenshot_nvim.SS()
     Take screenshot of all the text in the current buffer and either save it
     to your clipboard or on your specified folder depending on the options you
     have setup.
 
-
-                                                         *screenshot_nvim.SSText()
+                                                    *screenshot_nvim.SSText()*
 screenshot_nvim.SSText()
     Take screenshot of all the highlited text in the current buffer and either save it
     to your clipboard or on your specified folder depending on the options you
