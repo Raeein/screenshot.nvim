@@ -87,17 +87,11 @@ function M.run(options)
     }
     print(table.concat(command, " "))
 
-    -- job_id = vim.fn.jobstart(command, callbacks)
     job_id = vim.fn.jobstart(table.concat(command, " "), callbacks)
 
     if job_id <= 0 then
         print("Failed to capture - try again")
     end
-    -- if job_id == 0 then
-    --     print("Received invalid arguments")
-    -- elseif job_id == -1 then
-    --     print("cmd is not an executable")
-    -- end
 
     vim.fn.chansend(job_id, "\n")
 end

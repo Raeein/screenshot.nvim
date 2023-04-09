@@ -1,8 +1,7 @@
 if vim.g.screenshot_nvim_loaded then
 	print("screenshot_nvim already loaded")
 else
-    print("screenshot_nvim loading")
-	-- return
+	return
 end
 
 vim.g.screenshot_nvim_loaded = 1

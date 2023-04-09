@@ -7,14 +7,6 @@ function M.setup(options)
     config.setup(options)
 end
 
-M.setup({
-    clipboard = true,
-    save_screenshot = false,
-    -- save_dir = "/home/username/Pictures/Screenshots",
-    save_dir = "/Users/raeeinbagheri/Desktop/"
-})
-
-
 function M.check_versions()
 
     local version = vim.fn.system("carbon-now --version")
@@ -48,30 +40,6 @@ local function is_text_selected()
     end
     return true
 end
-
--- local function capture_selection_to_file()
---     local content = get_visual_selection()
---     if content == nil then
---         return
---     end
---     print("capture_selection")
---     if 1 == 1 then
---         return
---     end
---
---     local extention = vim.fn.expand("%:e")
---     local curr_file = vim.fn.expand("%:t:r")
---     local date = os.date("%Y-%m-%d_%H-%M-%S")
---     local file_name = curr_file .. "_" .. date .. "." .. extention
---
---     local current_dir = vim.fn.getcwd()
---     local file_path = current_dir .. "/" .. file_name
---     local file = io.open(file_path, "w")
---
---     file:write(content)
---     file:close()
---     print("Saved to: " .. file_path)
--- end
 
 local function get_file_info()
     local info = {}
@@ -150,30 +118,3 @@ function M.SSText()
 end
 
 return M
-
--- local function get_visual_selection()
---     -- check if mark has been set
---     if vim.fn.getpos("'<")[1] == 0 then
---         print("No text selected")
---         return nil
---     end
---
---     local s_start = vim.fn.getpos("'<")
---     local s_end = vim.fn.getpos("'>")
---     local n_lines = math.abs(s_end[2] - s_start[2]) + 1
---     local lines = vim.api.nvim_buf_get_lines(0, s_start[2] - 1, s_end[2], false)
---     lines[1] = string.sub(lines[1], s_start[3], -1)
---     if n_lines == 1 then
---         lines[n_lines] = string.sub(lines[n_lines], 1, s_end[3] - s_start[3] + 1)
---     else
---         lines[n_lines] = string.sub(lines[n_lines], 1, s_end[3])
---     end
---     local selection = table.concat(lines, '\n')
---     -- writeToFile(selection)
---     vim.api.nvim_command("echo 'hello world'")
---     return selection
--- end
-
--- local function is_visual_mode()
---     return vim.fn.mode() == "v" or vim.fn.mode() == "V" or vim.fn.mode() == ""
--- end

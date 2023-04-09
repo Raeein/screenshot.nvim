@@ -12,7 +12,6 @@ end
 
 function M.setup(options)
     if options == nil then
-        -- print("Screenshot-nvim: No options provided")
         return
     end
     -- remove the trailing slash from the save_dir
