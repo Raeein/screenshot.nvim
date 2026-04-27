@@ -1,21 +1,51 @@
 ================================================================================
-                                                             *screenshot.nvim*
+                                                        *screenshot.nvim*
 
-This plugin is a wrapper around the carbon-now cli program which allows you to
-take pretty screenshots of your leaving without leaving neovim. See examples
-below:
+Generate polished code screenshots from inside Neovim with the `carbon-now`
+CLI.
 
-                                                        *screenshot_nvim.SS()*
-screenshot_nvim.SS()
-    Take screenshot of all the text in the current buffer and either save it
-    to your clipboard or on your specified folder depending on the options you
-    have setup.
+Requirements:
+  - Neovim 0.10+
+  - carbon-now-cli available on $PATH
 
-                                                    *screenshot_nvim.SSText()*
-screenshot_nvim.SSText()
-    Take screenshot of all the highlited text in the current buffer and either save it
-    to your clipboard or on your specified folder depending on the options you
-    have setup.
+Commands: >
+  :ScreenshotBuffer
+      Capture the current buffer.
 
+  :ScreenshotSelection
+      Capture the current visual selection. The backend is line-based, so the
+      capture includes the full selected lines.
+<
 
- vim:tw=78:ts=8:ft=help:norl:
+Lua API: >
+  require("screenshot_nvim").setup({
+    output = "clipboard",
+  })
+
+  require("screenshot_nvim").capture_buffer()
+  require("screenshot_nvim").capture_selection()
+<
+
+Configuration keys:
+  output
+      "clipboard" or "file"
+
+  save_dir
+      Required when output = "file"
+
+  filename_format
+      os.date-compatible suffix used for saved screenshots
+
+  backend.command
+      CLI executable to run. Defaults to "carbon-now"
+
+  backend.timeout
+      Timeout in milliseconds for the backend process
+
+  backend.extra_args
+      Extra argv entries appended to the carbon-now invocation
+
+Health check:
+  Use |:checkhealth| screenshot_nvim to verify the runtime environment.
+
+vim:tw=78:ts=8:ft=help:norl:
